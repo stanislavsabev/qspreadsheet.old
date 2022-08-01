@@ -4,7 +4,7 @@ import sys
 from typing import Callable
 
 from PySide2 import QtWidgets, QtGui, QtCore
-import numpy as np 
+
 import pandas as pd
 from qspreadsheet import dataframe_view as df_view
 
