@@ -4,15 +4,17 @@ import sys
 from typing import Callable
 
 from PySide2 import QtWidgets, QtGui, QtCore
-
 import pandas as pd
-from qspreadsheet import dataframe_view as df_view
+
+from qspreadsheet import custom_widgets, dataframe_view as df_view
+from qspreadsheet import delegates
 
 
 class MainWindow(QtWidgets.QMainWindow):
     """Main GUI Window."""
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, table_view: QtWidgets.QTableView = None,
+                 parent: QtWidgets.QWidget = None):
         """Init MainWindow object."""
         super().__init__(parent)
 
@@ -24,12 +26,11 @@ class MainWindow(QtWidgets.QMainWindow):
         central_layout = QtWidgets.QVBoxLayout(central_widget)
         central_widget.setLayout(central_layout)
 
-        df = load_data()
-        table_widget = df_view.DataFrameView(df=df)
-
         table_layout = QtWidgets.QHBoxLayout()
-        table_layout.addWidget(table_widget)
-        table_widget.setParent(table_layout)
+        if not table_view:
+            table_view = QtWidgets.QTableView()
+        table_layout.addWidget(table_view)
+        table_view.setParent(table_layout)
         central_layout.addLayout(table_layout)
 
         self.setCentralWidget(central_widget)
@@ -62,18 +63,58 @@ class MainWindow(QtWidgets.QMainWindow):
         self.move(QtCore.QPoint(settings.value('pos', QtCore.QPoint(200, 200))))  # type: ignore
 
 
-def load_data():
+def load_df():
     area = pd.Series({0 : 423967, 1: 695662, 2: 141297, 3: 170312, 4: 149995})
     pop = pd.Series({0 : 38332521, 1: 26448193, 2: 19651127, 3: 19552860, 4: 12882135})
     states = ['California', 'Texas', 'New York', 'Florida', 'Illinois']
-    data = pd.DataFrame({'states': states, 'area': area, 'pop': pop}, index=range(len(states)))
-    return data
+    data = {'states': states, 'area': area, 'pop': pop}
+    df = pd.DataFrame(data=data)
+    df['overcrowded'] = (df['pop'] / df['area'] > 100)
+    return df
+
+
+class BoolToYesNoDelegate(delegates.BoolDelegate):
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.choices = ['Yes', 'No']
+        self._default = ''
+
+    def setEditorData(self, editor: QtWidgets.QComboBox, index: QtCore.QModelIndex):
+        model_value = index.model().data(index, QtCore.Qt.EditRole)
+        if pd.isnull(model_value):
+            editor.setCurrentIndex(self.default_value(index))
+            return
+        value = 'Yes' if model_value else 'No'
+        editor.setCurrentIndex(self.choices.index(value))
+
+    def display_data(self, index, value):
+        if pd.isnull(value):
+            return ''
+        return 'Yes' if value else 'No'
+
+    def setModelData(self, editor: QtWidgets.QComboBox,
+                     model: QtCore.QAbstractItemModel,
+                     index: QtCore.QModelIndex):
+        value = self.choices[editor.currentIndex()]
+        model.setData(index, True if value == 'Yes' else False)
+
+
+def create_custom_delegates_table(df):
+    custom_delegates = delegates.automap_delegates(df)
+    custom_delegates['overcrowded'] = BoolToYesNoDelegate()
+    return df_view.DataFrameView(df=df, delegates=custom_delegates)
+
+
+def create_default_table(df):
+    return df_view.DataFrameView(df=df)
 
 
 def main():
     """Entry point for this script."""
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
+    df = load_df()
+    table_view = create_custom_delegates_table(df)
+    window = MainWindow(table_view=table_view)
     window.show()
     sys.exit(app.exec_())
 
