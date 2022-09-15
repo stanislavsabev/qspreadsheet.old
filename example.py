@@ -44,9 +44,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def apply_settings(self, func: Callable[[QtCore.QSettings], None]):
         """Apply window settings ot own group and close it."""
         settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
-                                QtCore.QSettings.UserScope,
-                                self._org,
-                                self._app)
+                                    QtCore.QSettings.UserScope,
+                                    self._org,
+                                    self._app)
         settings.beginGroup('MainWindow')
         func(settings)
         settings.endGroup()
@@ -66,7 +66,7 @@ def load_data():
     area = pd.Series({0 : 423967, 1: 695662, 2: 141297, 3: 170312, 4: 149995})
     pop = pd.Series({0 : 38332521, 1: 26448193, 2: 19651127, 3: 19552860, 4: 12882135})
     states = ['California', 'Texas', 'New York', 'Florida', 'Illinois']
-    data = pd.DataFrame({'states':states, 'area':area, 'pop':pop}, index=range(len(states)))
+    data = pd.DataFrame({'states': states, 'area': area, 'pop': pop}, index=range(len(states)))
     return data
 
 
