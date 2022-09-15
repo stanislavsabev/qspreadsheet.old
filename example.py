@@ -99,21 +99,18 @@ class BoolToYesNoDelegate(delegates.BoolDelegate):
         model.setData(index, True if value == 'Yes' else False)
 
 
-def create_custom_delegates_table(df):
-    custom_delegates = delegates.automap_delegates(df)
-    custom_delegates['overcrowded'] = BoolToYesNoDelegate()
-    return df_view.DataFrameView(df=df, delegates=custom_delegates)
-
-
-def create_default_table(df):
-    return df_view.DataFrameView(df=df)
-
-
 def main():
     """Entry point for this script."""
     app = QtWidgets.QApplication(sys.argv)
     df = load_df()
-    table_view = create_custom_delegates_table(df)
+    table_view = df_view.DataFrameView(df=df)
+    table_view.set_column_delegate_for(
+        'overcrowded', BoolToYesNoDelegate())
+    table_view.set_column_delegate_for(
+        'states', delegates.StringDelegate())
+    table_view.set_columns_edit_state(['pop', 'area'], False)
+    
+
     window = MainWindow(table_view=table_view)
     window.show()
     sys.exit(app.exec_())

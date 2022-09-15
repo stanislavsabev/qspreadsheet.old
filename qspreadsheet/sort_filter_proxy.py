@@ -18,7 +18,9 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from qspreadsheet import resources_rc
-from qspreadsheet.common import DF, SER, pandas_obj_insert_rows, pandas_obj_remove_rows
+from qspreadsheet.common import DF, SER
+from qspreadsheet.common import pandas_obj_insert_rows
+from qspreadsheet.common import pandas_obj_remove_rows
 from qspreadsheet._ndx import _Ndx
 from qspreadsheet.menus import FilterWidgetAction
 
@@ -27,6 +29,7 @@ logger = logging.getLogger(__name__)
 INITIAL_FILTER_LIMIT = 5000
 FILTER_VALUES_STEP = 5000
 DEFAULT_FILTER_INDEX = -1
+
 
 class DataFrameSortFilterProxy(QSortFilterProxyModel):
 
